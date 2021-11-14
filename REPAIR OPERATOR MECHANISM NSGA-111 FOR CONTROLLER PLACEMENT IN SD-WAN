@@ -1,0 +1,2083 @@
+pip install deap
+from math import factorial
+import math
+import random
+import matplotlib.pyplot as plt
+import numpy as np
+from deap import algorithms
+from deap import base
+from deap import creator
+from deap import tools
+import matplotlib.pyplot as plt
+import mpl_toolkits.mplot3d as Axes3d
+import time
+
+# Problem definition
+NOBJ = 5
+NDIM = 5
+P = 8
+H = factorial(NOBJ + P - 1) / (factorial(P) * factorial(NOBJ - 1))
+
+BOUND_LOW, BOUND_UP = 0, 20
+
+import pandas as pd
+dataset = pd.read_csv('DistanceMatrixnan2.csv',index_col=0)
+dataset.head(5)
+
+MU = int(H)
+NGEN = 500
+CXPB = 1.0
+MUTPB = 1.0/NDIM
+
+ref_points = tools.uniform_reference_points(NOBJ, P)
+ref_points
+
+dataset = pd.read_csv('DistanceMatrixnan2.csv',index_col=0)
+dataset.head(5)
+di = dataset.reset_index(drop=True)
+di.columns = di.index
+dataset = di
+dataset
+
+def uniform(low, up, size=None):
+    try:
+        return[random.uniform(a,b) for a, b in zip(low, up)]
+    except TypeError:
+        return [random.uniform(a,b) for a, b in zip([low] * size, [up] *size)]
+uniform(BOUND_LOW, BOUND_UP, NDIM)
+
+D_lower = 0
+D_upper = 21
+def uniform(low, up, size=None):
+    return random.sample(range(D_lower,D_upper), NDIM)
+uniform(BOUND_LOW, BOUND_UP, NDIM)
+
+!pip install pymop
+!pip install pymoo
+pip install autograd
+
+import pandas as pd
+pd.set_option('display.max_rows', None)
+creator.create("FitnessMin", base.Fitness, weights=(-1.0,) * NOBJ)
+creator.create("Individual", list, fitness=creator.FitnessMin)
+import math
+#Introduction of repairs operator/local mutation to improve on NSGA-111 code.
+import autograd.numpy as anp        
+def nuNumber(dup, row, ct = 1):    #dup=duplicate, row=row, and the ct=control variable.
+                  #print('duplicated number is ', dup, ' in ', row, ' iterator is ', ct)
+                  if dup < 20:     #setting check condition to the maximum number of BtEurope
+                    nu = dup + ct
+                  else:
+                    nu = dup - ct
+                  if nu < 1:
+                    nuNumber(nu + 1, row, ct + 1)
+                  if nu in row:
+                    nu = nuNumber(nu + 1, row, ct + 1)
+                  
+                  if (math.isnan(nu)):   #when nan appears in row, then replace with random from q gen
+                      for q in range(0,20):
+                        if(q not in row ):
+                          nu = q
+                          break
+                  return round(nu)
+
+def MOCP(VARS, NDIM): #passing VARS=init pop and NDIM=number of decision variables into the funct.
+        #print(type(VARS))
+       
+        for i in range(0, len(VARS)):
+          #test_list[i] = int(test_list[i])
+          for j in range(0, len(VARS[i])):
+            b4 = VARS[i][j]
+            VARS[i][j] = round(VARS[i][j])
+            #print("before ", b4, " after ",VARS[i][j])
+        
+        #print("Details of X below")
+
+        #VARS.apply(pd.to_numeric)
+        #VARS.astype('int32').dtypes
+        #df = VARS.convert_objects(convert_numeric=True)
+        dataset = pd.read_csv('DistanceMatrixnan2.csv',index_col=0)
+        global x
+        x = pd.DataFrame(VARS)
+        
+        
+        city = dataset.columns.to_list()
+        #print("city is \n", city)
+        v = len(dataset)
+        #print("length of dataset is ", v)
+        minL = []
+        sumL = []
+        maxC2C = []
+        avgC2C = []
+        C2C = []
+        end_values = []
+        
+        for index, row in x.iterrows():
+            #print('index is ', index, 'row is ', row)
+            li = []
+            r = row.tolist()
+            #REMOVE DUPLICATE FROM ROW
+            
+            rChk = []
+            for id,w in enumerate(r):
+              if w not in rChk:
+                rChk.append(w)
+              else:
+                #print('duplicate detected in ', r)
+                for q in range(0,19):
+                  if(q not in r ):
+                    print(r[id], " about to be changed to ", q)
+                    r[id] = q
+                    x.loc[index,id] = q
+                    rChk.append(r[id])
+                    break
+                #print("new row is ", r)
+                   
+            #end of duplicate checker
+            cont_distance =[]
+            cont_distanc =[]
+            ctyu = []
+            #endValLIst = []
+            #print("row is ", r)
+            sam = 0
+            a = 0
+            sm = []
+            #print("\n")
+            #print("R check check is \n",r)
+            
+            for i in range(len(r)):
+              #print("city ", r[i])
+              ctyu.append(city[r[i]])
+              #print('city being appended is ',city[r[i]])
+
+            
+              #print('selected', city[r[i]]  )
+              a = i
+              dty = dataset[ctyu].iloc[0]
+
+              #print('tobi is ',dty)
+              cont_distance = max(dty)
+              
+            ydt = dataset[ctyu]
+            new_dataset = ydt.dropna() 
+            
+            row_list = []
+            new_list =[]
+            ij = []
+            values = pd.DataFrame()
+            for index, row in ydt.iterrows():
+                #print('index is length ',len(row))
+                for k in range(len(row)):
+                  
+                  if isinstance(row.loc[ctyu[k]], pd.core.series.Series):
+                    
+                    row_list.append(row.loc[ctyu[k]].iloc[0])
+                  else:
+                    row_list.append(row.loc[ctyu[k]])
+                #print("row_list\n", row_list)
+                for i in row_list:
+                  if i != min(row_list):
+                        #print("I is not equal to min of rowlist")
+                        new_list.append(0)
+                  else:
+                        new_list.append(1)
+                #print("New list is \n",new_list)
+                to_load = pd.Series(new_list, index=ctyu)
+                #print("loaded list is \n", to_load)
+                values = values.append(to_load, ignore_index=True)
+                #print("values \n", values)
+                row_list =[]
+                new_list =[]
+
+            result = values.apply(pd.value_counts).drop([0])
+            #print("result\n", result,"\nMAX", result.max(axis = 1), "\nMIN", result.min(axis = 1))
+            end_val = (result.max(axis = 1) - result.min(axis = 1))/result.max(axis = 1)
+            
+            #print("end_val\n",end_val)
+            end_values.append(end_val)
+
+            lo = ydt.iloc[0]
+            #print(lo)
+            for i in range(len(lo)):
+              #print(lo[i])
+              si = 0
+              a = i
+              #sm.append(lo[i])
+              for j in range(i +1,len(lo), 1):
+                si = lo[i] + lo[j]
+                sm.append(si)
+            t = 0
+            for u in sm:
+              t = t + u
+            #print(t)
+            C2 = (t)/(math.comb(len(r), 2))
+            
+            C2C.append(C2)
+            maxC2C.append(cont_distance)
+            avgC2C.append(C2)
+
+            for i in r:
+              li.append(city[i])
+            #print("A new row ") 
+            #print(li)
+            new_dataset2 = dataset[li]  
+            new_dataset2 = new_dataset2.dropna() 
+            new_dataset2 = new_dataset2.reset_index(drop=True)
+            new_dataset2 =  pd.DataFrame(new_dataset2)
+            mins =  new_dataset2.min(axis=1)
+            sum = 1/(abs(len(new_dataset2))) * np.sum(mins)
+            #print(new_dataset2)
+            minL.append(mins)
+            sumL.append(sum)
+        minDataset = pd.DataFrame(minL)
+        maxC2CDataset = pd.DataFrame(maxC2C)
+        C2CDataset = pd.DataFrame(C2C)
+        EndValDataset = pd.DataFrame(end_values)
+        avgC2CDataset = pd.DataFrame(avgC2C)
+        
+        #norm_EndValDataset = EndValDataset / (EndValDataset.max())
+        #print('EndValDataset.max() is \n', EndValDataset.max())
+        #print('EndValDataset is \n',norm_EndValDataset)
+        #return norm_EndValDataset
+        #endvalues_norm = norm_EndValDataset[1.0].to_list()
+        
+        maxNu = minDataset.max(axis=1) #generates the maximum of minimum
+        #print("Maximum of Minimum is ")
+        #print(maxNu)
+        #print("\n\n")
+        #print("Sum")
+        maxNuDataset = pd.DataFrame(maxNu)
+        sumDataset = pd.DataFrame(sumL) #generates the sum
+        
+        
+        #print ("maxNu", maxNu, "\nmaxC2C", maxC2C, "\nCSC",C2C, "\nend_values",   end_values, "\nsumDataset", sumL   )
+        f = anp.column_stack([maxNu, maxC2C,C2C, end_values, sumL ])
+        #print("Our F\n", f)
+        return f
+    
+        #out["G"] = anp.column_stack([g1, g2])
+#MOCP(VARS, NDIM)
+
+#The repair operator is mostly problem dependent. Most commonly it is used to make sure the algorithm
+#is only searching in the feasible space. It is applied after the offsprings have been reproduced
+def fixer(VA):
+  for i in range(len(VA)):
+    k = []
+    for j in range(len(VA[i])):
+      VA[i][j] = int(round(VA[i][j]))
+      if VA[i][j] not in k:
+        k.append(VA[i][j])
+        #print(k)
+      else:
+        f = 0
+        #print("row ", i, "duplicate found in ", VA[i])
+        for q in range(VA[i][j], 20):
+          if q not in k:
+            #print(q," proposed to change the initial ", VA[i][j])
+            VA[i][j] = q
+            k.append(q)
+            f = 1
+            break
+        if f == 0: 
+          for q in reversed(range(0, VA[i][j])):
+            if q not in k:
+              #print(q," proposed to change the initial ", VA[i][j])
+              VA[i][j] = q
+              k.append(q)
+              f = 1
+              break
+        
+            
+        
+  return VA
+  
+import platypus as plat
+import pygmo as pg
+from pygmo import hypervolume
+from platypus import Hypervolume, calculate, display 
+import psutil, tracemalloc
+
+creator.create("FitnessMin", base.Fitness, weights=(-1.0,) * NOBJ)
+creator.create("Individual", list, fitness=creator.FitnessMin)
+# Toolbox initialization
+#def uniform(low, up, size=None):
+#    try:
+#        return [random.randint(a, b) for a, b in zip(low, up)]
+#    except TypeError:
+#        return [random.randint(a, b) for a, b in zip([low] * size, [up] * size)]
+def uniform(low, up, size=None):
+  return random.sample(range(low,up),NDIM)
+   
+#uniform(BOUND_LOW, BOUND_UP, NDIM)
+toolbox = base.Toolbox()
+
+toolbox.register("attr_float", uniform, BOUND_LOW, BOUND_UP, NDIM)
+#toolbox.register("attr_float", popGenNoSeed)
+#popGenNoSeed()
+toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.attr_float)
+toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+toolbox.register("mate", tools.cxSimulatedBinaryBounded, low=BOUND_LOW, up=BOUND_UP, eta=30.0)
+toolbox.register("mutate", tools.mutPolynomialBounded, low=BOUND_LOW, up=BOUND_UP, eta=20.0, indpb=1.0/NDIM)
+toolbox.register("select", tools.selNSGA3, ref_points=ref_points)
+##
+
+from pymoo.model.population import Population
+solutions = []
+def main(seed=None):
+    global initial_pop
+    global hyper
+    hyper = []
+    
+    random.seed(seed)
+    # Initialize statistics object
+    pop = toolbox.population(n=MU)
+    initial_pop = pop
+    invalid_ind = [ind for ind in pop if not ind.fitness.valid]
+    #hyp = Hypervolume(minimum=[0, 0, 0, 0, 0], maximum=[1, 1, 1, 1, 1])
+    #hyp_result = hypervolume(pop)
+    #solutions.append(hyp_result)
+    #hv = hypervolume(pop)
+    #rp = hv.refpoint(offset = 2.0)
+    #hcm = hv.compute(rp)
+    #solutions.append(hcm)
+    ObjV = MOCP(invalid_ind, NDIM)
+    for ind, i in zip(invalid_ind, range(MU)):
+        ind.fitness.values = ObjV[i, :]
+        
+    fitnsga3 = [ind.fitness.values  for ind in pop]
+    ftDfnsga3 = pd.DataFrame(fitnsga3)
+    hyp = pg.hypervolume(ftDfnsga3[[0, 1, 2, 3, 4]].values)
+    hypvol = hyp.compute([20, 20, 20, 20, 20]) / np.prod([20, 20, 20, 20, 20])
+    hyper.append(hypvol)
+    # Begin the generational process
+
+    global offspring
+    
+    exec_time = []
+    avg_cpu_utilNSGA3 = []
+    for gen in range(1, NGEN):
+        start = time.perf_counter()
+        #print("generation is ", gen)
+        offspring = algorithms.varAnd(pop, toolbox, CXPB, MUTPB)
+        #print("OFFSPRING IS ", offspring)
+        offspring = fixer(offspring)
+        offspring = fixer(offspring)
+        #print("modified offspring", offspring)
+        #return offspring
+        # Evaluate the individuals with an invalid fitness
+        invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
+        #print("Invalid individuals ", invalid_ind)
+        #function to be applied on offspring
+        #  -float to integers
+        #  -remove duplicates
+        #  -
+
+        ObjV = MOCP([ind for ind in offspring if not ind.fitness.valid], NDIM)
+        for ind, i in zip(invalid_ind, range(MU)):
+            ind.fitness.values = ObjV[i, :]
+        # Select the next generation population from parents and offspring
+        pop = toolbox.select(pop + offspring, MU)
+        fitnsga3 = [ind.fitness.values  for ind in pop]
+        ftDfnsga3 = pd.DataFrame(fitnsga3)
+        hyp = pg.hypervolume(ftDfnsga3[[0, 1, 2, 3, 4]].values)
+        hypvol = hyp.compute([20, 20, 20, 20, 20]) / np.prod([20, 20, 20, 20, 20])
+        hyper.append(hypvol)
+        
+        core_amount = psutil.cpu_count()
+        core_load = [x / core_amount * 100 for x in psutil.getloadavg()]
+        avg_cpu_util = psutil.cpu_percent()
+        avg_cpu_utilNSGA3.append(avg_cpu_util)
+        
+        end = time.perf_counter()
+        end_time = end - start
+    
+        exec_time.append(end_time)
+        
+        #hyp = Hypervolume(minimum=[0, 0, 0, 0, 0], maximum=[1, 1, 1, 1, 1])
+        #hyp_result = hypervolume(pop)
+        #solutions.append(hyp_result)
+    
+        #hv = hypervolume(pop)
+        #rp = hv.refpoint(offset = 2.0)
+        #hcm = hv.compute(rp)
+        #solutions.append(hcm)
+    '''cpu utilization'''
+    #core_amount = psutil.cpu_count()
+    #core_load = [x / core_amount * 100 for x in psutil.getloadavg()]
+    #avg_cpu_util = psutil.cpu_percent()
+    
+    return pop, core_load, avg_cpu_utilNSGA3, exec_time
+ 
+if __name__ == "__main__":
+    '''time measurement'''
+    tracemalloc.start()
+    start = time.perf_counter()
+    pop, core_load, avg_cpu_utilNSGA3, exec_time = main()
+    current, peak = tracemalloc.get_traced_memory()
+    end = time.perf_counter()
+    tracemalloc.stop()
+    exec_timeNSGA3 = end - start
+    
+    #print("time taken is {}".format(exec_time) )
+    print("time taken is {}".format(exec_timeNSGA3) )
+    print(f"current memory utilization is {current/10**6}MB")
+    print(f"peak memory utilisation is {peak/10**6}MB")
+    print("cpu load/core is {}".format(core_load))
+    #print("avg_cpu utilisation is {}".format(avg_cpu_utilNSGA3))
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection="3d")
+    p = np.array([ind.fitness.values for ind in pop])
+    ax.scatter(p[:, 0], p[:, 1], p[:, 2], marker="o", s=10)
+    ax.view_init(elev=30, azim=45)
+    plt.grid(True)
+    plt.show()
+	
+fitnsga3 = [ind.fitness.values  for ind in pop]
+ftDfnsga3 = pd.DataFrame(fitnsga3)
+ftDfnsga3
+
+hyp = pg.hypervolume(ftDfnsga3[[0, 1, 2, 3, 4]].values)
+hypvol = hyp.compute([20, 20, 20, 20, 20]) / np.prod([20, 20, 20, 20, 20])
+hyp.compute([20, 20, 20, 20, 20]) / np.prod([20, 20, 20, 20, 20])
+
+stats = tools.Statistics(key=lambda ind: ind.fitness.values)
+stats.register("avg", np.mean, axis=0)
+stats.register("std", np.std, axis=0)
+stats.register("min", np.min, axis=0)
+stats.register("max", np.max, axis=0)
+
+record = stats.compile(pop)
+
+
+print(record)
+print(type(record))
+
+from IPython.display import display
+
+results = pd.DataFrame.from_dict(record)
+table_data = results.rename(columns={'avg':'AVG', 'std':'STDEV', 'min':'MIN', 'max':'MAX'})
+
+display(table_data)
+
+ftDfnsga3.columns=["sw_to_conlat", "cont_contlat", "avgcon_con", "load_imb", "avgsw_to_conlat"]
+ftDfnsga3.to_csv("objvalues.csv", index=False)
+
+cols = ftDfnsga3.columns.tolist()
+for col in cols:
+  for co in cols:
+    if (col != co):
+      ftDfnsga3.plot.scatter(x=col,    y=co, c='DarkBlue')
+	  
+!pip install pandas-bokeh
+import pandas_bokeh
+pandas_bokeh.output_notebook()
+
+cols = ftDfnsga3.columns.tolist()
+for col in cols:
+  for co in cols:
+    if (col != co):
+      ftDfnsga3.plot_bokeh.scatter(x=col,    y=co, c='DarkBlue')
+
+p
+
+fitnsga3 = [ind.fitness for ind in pop]
+fitnsga3
+
+pDf = pd.DataFrame(p)
+pDf.to_csv("output_populationNSGA3500_final.csv", index=False)
+
+pDf.head()
+
+pip install -U hiplot
+
+import hiplot as hip
+data = hip.Experiment.from_csv("output_populationNSGA3500_final.csv")
+data.display()
+
+%matplotlib inline
+%config InlineBackend.figure_format='retina'
+import matplotlib.pyplot as plt
+import seaborn as sns
+from pylab import rcParams
+#import tensorflow as tf
+import numpy as np
+sns.set(style='whitegrid', palette='muted', font_scale=1.5)
+rcParams['figure.figsize'] = 16, 10
+RANDOM_SEED = 43
+np.random.seed(RANDOM_SEED)
+#tf.random.set_seed(RANDOM_SEED)
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+%matplotlib inline
+import matplotlib.ticker as mticker
+#pd.set_option('display.float_format', lambda x: '%.6f' % x)
+
+fig, ax = plt.subplots(figsize=(20,10))
+ax=plt.gca()
+
+#plt.plot(hyper1, marker='o', linestyle='-', label = "NSGA II Hypervolumes")
+#plt.plot(hyper1, marker='o', linestyle='-', label = "NSGA II Hypervolumes", color='red')
+plt.plot(hyper, marker='s', linestyle='--', label = "NSGA III Hypervolumes")
+ax.yaxis.set_major_formatter(mticker.ScalarFormatter())
+ax.yaxis.get_major_formatter().set_scientific(False)
+ax.yaxis.get_major_formatter().set_useOffset(False)
+
+plt.ylabel('Hypervolumes')
+plt.xlabel('Number of Generations')
+plt.legend()
+
+plt.show()
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+%matplotlib inline
+import matplotlib.ticker as mticker
+#pd.set_option('display.float_format', lambda x: '%.6f' % x)
+
+fig, ax = plt.subplots(figsize=(20,10))
+ax=plt.gca()
+
+#plt.plot(hyper1, marker='o', linestyle='-', label = "NSGA II Hypervolumes")
+#plt.plot(exec_time2, marker='o', linestyle='-', label = "NSGA II EXECUTION TIME", color='red')
+plt.plot(exec_time, marker='s', linestyle='--', label = "NSGA III EXECUTION TIME")
+ax.yaxis.set_major_formatter(mticker.ScalarFormatter())
+ax.yaxis.get_major_formatter().set_scientific(False)
+ax.yaxis.get_major_formatter().set_useOffset(False)
+
+plt.ylabel('EXECUTION TIME(secs)')
+plt.xlabel('Number of Generations')
+plt.legend()
+
+plt.show()
+
+offDt = pd.DataFrame(offspring)
+offDt
+
+x.head()
+
+pop
+
+[ind.fitness.values for ind in pop]
+
+fitnsga3 = [ind.fitness.values  for ind in pop]
+#soldf = pd.DataFrame(index=range(N),columns=['f1','f2']).astype(float)
+ftDfnsga3 = pd.DataFrame(fitnsga3)
+ftDfnsga3.sample(2)
+
+ftDfnsga3[[0, 1, 2, 3, 4]]
+
+fitnsga3 = [ind.fitness.values  for ind in pop]
+ftDfnsga3 = pd.DataFrame(fitnsga3)
+ftDfnsga3
+
+ftDfnsga3.to_csv("newNSGA3POP500.csv", index=False)
+
+indsnsga3 = [ind for ind in pop]
+indsDfnsga3 = pd.DataFrame(indsnsga3)
+indsDfnsga3.sample(2)
+
+indsDfnsga3
+
+indTopnsga3 = indsDfnsga3[:21]
+print(indTopnsga3.shape)
+indTopnsga3.head()
+
+dataset = pd.read_csv('DistanceMatrixnan2.csv',index_col=0)
+cities = dataset.columns.to_list()
+cities
+
+
+import time
+seconds = time.time()
+indTopnsga3.to_csv("Top21Individuals_{}.csv".format(time.time()), index=False)
+
+ctMapnsga3 = pd.DataFrame()
+for index, row in indTopnsga3.iterrows():
+  s = cities[index]
+  for id,val in enumerate(row):
+    j = cities[val]
+    ctMapnsga3.loc[index, id] = "{},{}".format(s,j)
+ctMapnsga3
+
+ctMapnsga3.to_csv("CityMappings_{}.csv".format(time.time()), index=False
+
+xmapnsga3 = pd.DataFrame()
+for index, row in ftDfnsga3.iterrows():
+  print("row being reviewed is ",row)
+  for id,val in enumerate(row):
+    xmapnsga3.loc[index,id] = "{}_{}".format(ftDfnsga3.loc[index,id], indsDfnsga3.loc[index,id])
+
+xmapnsga3.sample(5)
+
+xmapnsga3
+
+
+EN  EN    EN
+import pandas as pd
+import numpy as np
+import haversine as hs
+import csv
+import math
+
+dataset = pd.read_csv('BtEurope.csv')
+data = dataset.iloc[:, [0, 1]].values
+#print(data)
+#print(data[0][0])
+
+
+def haversine(lon1, lat1, lon2, lat2):
+    """
+    Calculate the great circle distance between two points
+    on the earth (specified in decimal degrees).
+    Source: https://gis.stackexchange.com/a/56589/15183
+    """
+    #print('lat1 %s  lon1 %s  lat2 %s lon2 %s' % (lat1, lon1, lat2, lon2))
+    # convert decimal degrees to radians
+    lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
+    # haversine formula
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+    a = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    # print('a %s' %(a))
+    c = 2 * math.asin(math.sqrt(a))
+    # print('c %s'%(c))
+    km = 6378 * c
+    # print('ok')
+
+    # a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlong/2)**2
+    # c = 2 * asin(sqrt(a))
+    # r = 3959 #distance in miles around the earth
+
+    return km
+
+
+dataset = pd.read_csv('BtEurope.csv')
+data1 = dataset.iloc[:, [0, 1]].values
+data2 = dataset.iloc[:, [0, 1]].values
+# print(data)
+shortest_dist = []
+for row1 in data1:
+    sum_row1 = 0
+    for row2 in data2:
+        sum_row1 += (haversine(row1[0], row1[1], row2[0], row2[1]))
+
+        # print(row1[0])
+        # print(row2[0])
+        # print()
+        print('distance %s \n' % haversine(row1[0], row1[1], row2[0], row2[1]))
+    shortest_dist.append(sum_row1)
+#print(shortest_dist)
+#print(min(shortest_dist))
+#to the dataframe
+locs = dataset
+maximum = 0
+
+distDf = pd.DataFrame()
+for index, row in locs.iterrows():
+    #print("city being reviewed is ",row[2])
+    lat1 = round(row[1], 3)
+    lon1 = round(row[0], 3)
+  
+    for index2, row2 in locs.iterrows():
+        #print("city being reviewed is ",row2[2])
+        lat2 = round(row2[1], 3)
+        lon2 = round(row2[0], 3)
+    
+        #print('details are',lon1, lat1, lon2, lat2)
+        xMDf = haversine(lon1, lat1, lon2, lat2)
+        if maximum < xMDf:
+            maximum = round(xMDf, 3)
+        distDf.loc[index, index2] = round(xMDf, 3)
+#print("maximum is " , maximum)
+distDf = distDf / maximum
+distDf
+#distDf= distDf.drop([15])
+#distDf = distDf.reset_index(level=0, drop = True)
+
+BEGINNING OF NSGA2 FOR CONTROLLER PLACEMENT IN SDWAN
+import random
+from deap import base
+from deap import algorithms
+from deap import creator
+from deap import tools
+import numpy as np
+import matplotlib.pyplot as plt
+import time
+
+dataset = pd.read_csv('DistanceMatrixnan2.csv',index_col=0)
+dataset.head(5)
+di = dataset.reset_index(drop=True)
+di.columns = di.index
+dataset = di
+dataset
+
+NDIM = 5
+NOBJ = 5
+
+MU = 495
+NGEN = 500
+CXPB = 1.0
+MUTPB = 1.0/NDIM
+BOUND_LOW, BOUND_UP = 0, 20
+MUTPB = 1.0/NDIM
+D_lower = 0
+D_upper = 21
+def uniform(low, up, size=None):
+    return random.sample(range(D_lower,D_upper), NDIM)
+uniform(BOUND_LOW, BOUND_UP, NDIM)
+
+def uniform(low, up, size=None):
+    try:
+        return[random.uniform(a,b) for a, b in zip(low, up)]
+    except TypeError:
+        return [random.uniform(a,b) for a, b in zip([low] * size, [up] *size)]
+uniform(BOUND_LOW, BOUND_UP, NDIM)
+
+import pandas as pd
+pd.set_option('display.max_rows', None)
+creator.create("FitnessMin1", base.Fitness, weights=(-1.0,) * NOBJ)
+creator.create("Individual", list, fitness=creator.FitnessMin)
+#creator.create("Individual", list, fitness=creator.FitnessMin)
+import math
+#Introduction of repairs operator/local mutation to improve on NSGA-111 code.
+import autograd.numpy as anp        
+def nuNumber(dup, row, ct = 1): 
+                  #print('duplicated number is ', dup, ' in ', row, ' iterator is ', ct)
+                  if dup < 20:     #setting check condition to the maximum number of BtEurope
+                    nu = dup + ct
+                  else:
+                    nu = dup - ct
+                  if nu < 1:
+                    nuNumber(nu + 1, row, ct + 1)
+                  if nu in row:
+                    nu = nuNumber(nu + 1, row, ct + 1)
+                  
+                  if (math.isnan(nu)):   #when nan appears in row, then replace with random from q gen
+                      for q in range(0,20):
+                        if(q not in row ):
+                          nu = q
+                          break
+                  return round(nu)
+
+def MOCP(VARS, NDIM): #passing VARS=init pop and NDIM=number of decision variables into the funct.
+        #print(type(VARS))
+        VARS = fixer(VARS)
+        
+        for i in range(0, len(VARS)):
+          #test_list[i] = int(test_list[i])
+          for j in range(0, len(VARS[i])):
+            b4 = VARS[i][j]
+            VARS[i][j] = round(VARS[i][j])
+            #print("before ", b4, " after ",VARS[i][j])
+          
+        
+        #print("Details of X below")
+
+        #VARS.apply(pd.to_numeric)
+        #VARS.astype('int32').dtypes
+        #df = VARS.convert_objects(convert_numeric=True)
+        dataset = pd.read_csv('DistanceMatrixnan2.csv',index_col=0)
+        global x1
+        x1 = pd.DataFrame(VARS)
+        
+        
+        city = dataset.columns.to_list()
+        #print("city is \n", city)
+        v = len(dataset)
+        #print("length of dataset is ", v)
+        minL = []
+        sumL = []
+        maxC2C = []
+        avgC2C = []
+        C2C = []
+        end_values = []
+        
+        for index, row in x1.iterrows():
+            #print('index is ', index, 'row is ', row)
+            li = []
+            r = row.tolist()
+           
+            #REMOVE DUPLICATE FROM ROW
+            
+            rChk = []
+            for id,w in enumerate(r):
+              if w not in rChk:
+                rChk.append(w)
+              else:
+                #print('duplicate detected in ', r)
+                for q in range(0,19):
+                  if(q not in r ):
+                    print(r[id], " about to be changed to ", q)
+                    r[id] = q
+                    x1.loc[index,id] = q
+                    rChk.append(r[id])
+                    break
+                #print("new row is ", r)
+                
+                   
+            #end of duplicate checker
+          
+            cont_distance =[]
+            cont_distanc =[]
+            ctyu = []
+            #endValLIst = []
+            #print("row is ", r)
+            sam = 0
+            a = 0
+            sm = []
+            #print("\n")
+            #print("R check check is \n",r)
+            
+            for i in range(len(r)):
+              #print("city ", r[i])
+              ctyu.append(city[r[i]])
+              #print('city being appended is ',city[r[i]])
+
+            
+              #print('selected', city[r[i]]  )
+              a = i
+              dty = dataset[ctyu].iloc[0]
+
+              #print('tobi is ',dty)
+              cont_distance = max(dty)
+              
+            ydt = dataset[ctyu]
+            new_dataset = ydt.dropna() 
+            
+            row_list = []
+            new_list =[]
+            ij = []
+            values = pd.DataFrame()
+            for index, row in ydt.iterrows():
+                #print('index is length ',len(row))
+                for k in range(len(row)):
+                  
+                  if isinstance(row.loc[ctyu[k]], pd.core.series.Series):
+                    
+                    row_list.append(row.loc[ctyu[k]].iloc[0])
+                  else:
+                    row_list.append(row.loc[ctyu[k]])
+                #print("row_list\n", row_list)
+                for i in row_list:
+                  if i != min(row_list):
+                        #print("I is not equal to min of rowlist")
+                        new_list.append(0)
+                  else:
+                        new_list.append(1)
+                #print("New list is \n",new_list)
+                to_load = pd.Series(new_list, index=ctyu)
+                #print("loaded list is \n", to_load)
+                values = values.append(to_load, ignore_index=True)
+                #print("values \n", values)
+                row_list =[]
+                new_list =[]
+
+            result = values.apply(pd.value_counts).drop([0])
+            #print("result\n", result,"\nMAX", result.max(axis = 1), "\nMIN", result.min(axis = 1))
+            end_val = (result.max(axis = 1) - result.min(axis = 1))/result.max(axis = 1)
+            
+            #print("end_val\n",end_val)
+            end_values.append(end_val)
+
+            lo = ydt.iloc[0]
+            #print(lo)
+            for i in range(len(lo)):
+              #print(lo[i])
+              si = 0
+              a = i
+              #sm.append(lo[i])
+              for j in range(i +1,len(lo), 1):
+                si = lo[i] + lo[j]
+                sm.append(si)
+            t = 0
+            for u in sm:
+              t = t + u
+            #print(t)
+            C2 = (t)/(math.comb(len(r), 2))
+            
+            C2C.append(C2)
+            maxC2C.append(cont_distance)
+            avgC2C.append(C2)
+
+            for i in r:
+              li.append(city[i])
+            #print("A new row ") 
+            #print(li)
+            new_dataset2 = dataset[li]  
+            new_dataset2 = new_dataset2.dropna() 
+            new_dataset2 = new_dataset2.reset_index(drop=True)
+            new_dataset2 =  pd.DataFrame(new_dataset2)
+            mins =  new_dataset2.min(axis=1)
+            sum = 1/(abs(len(new_dataset2))) * np.sum(mins)
+            #print(new_dataset2)
+            minL.append(mins)
+            sumL.append(sum)
+        minDataset = pd.DataFrame(minL)
+        maxC2CDataset = pd.DataFrame(maxC2C)
+        C2CDataset = pd.DataFrame(C2C)
+        EndValDataset = pd.DataFrame(end_values)
+        avgC2CDataset = pd.DataFrame(avgC2C)
+        
+        #norm_EndValDataset = EndValDataset / (EndValDataset.max())
+        #print('EndValDataset.max() is \n', EndValDataset.max())
+        #print('EndValDataset is \n',norm_EndValDataset)
+        #return norm_EndValDataset
+        #endvalues_norm = norm_EndValDataset[1.0].to_list()
+        
+        maxNu = minDataset.max(axis=1) #generates the maximum of minimum
+        #print("Maximum of Minimum is ")
+        #print(maxNu)
+        #print("\n\n")
+        #print("Sum")
+        maxNuDataset = pd.DataFrame(maxNu)
+        sumDataset = pd.DataFrame(sumL) #generates the sum
+        
+        
+        #print ("maxNu", maxNu, "\nmaxC2C", maxC2C, "\nCSC",C2C, "\nend_values",   end_values, "\nsumDataset", sumL   )
+        f = anp.column_stack([maxNu, maxC2C,C2C, end_values, sumL ])
+        #print("Our F\n", f)
+        return f
+    
+        #out["G"] = anp.column_stack([g1, g2])
+#MOCP(VARS, NDIM)
+
+def fixer(VA):
+  for i in range(len(VA)):
+    k = []
+    for j in range(len(VA[i])):
+      VA[i][j] = int(round(VA[i][j]))
+      if VA[i][j] not in k:
+        k.append(VA[i][j])
+        #print(k)
+      else:
+        f = 0
+        #print("row ", i, "duplicate found in ", VA[i])
+        for q in range(VA[i][j], 20):
+          if q not in k:
+            #print(q," proposed to change the initial ", VA[i][j])
+            VA[i][j] = q
+            k.append(q)
+            f = 1
+            break
+        if f == 0: 
+          for q in reversed(range(0, VA[i][j])):
+            if q not in k:
+              #print(q," proposed to change the initial ", VA[i][j])
+              VA[i][j] = q
+              k.append(q)
+              f = 1
+              break
+        
+            
+        
+  return VA
+  
+import platypus as plat
+import pygmo as pg
+from pygmo import hypervolume
+from platypus import Hypervolume, calculate, display 
+import psutil, tracemalloc
+
+creator.create("FitnessMin1", base.Fitness, weights=(-1.0,) * NOBJ)
+creator.create("Individual", list, fitness=creator.FitnessMin)
+# Toolbox initialization
+#def uniform(low, up, size=None):
+#    try:
+#        return [random.randint(a, b) for a, b in zip(low, up)]
+#    except TypeError:
+#        return [random.randint(a, b) for a, b in zip([low] * size, [up] * size)]
+def uniform(low, up, size=None):
+  return random.sample(range(low,up),NDIM)
+   
+#uniform(BOUND_LOW, BOUND_UP, NDIM)
+toolbox = base.Toolbox()
+
+toolbox.register("attr_float", uniform, BOUND_LOW, BOUND_UP, NDIM)
+#toolbox.register("attr_float", popGenNoSeed)
+#popGenNoSeed()
+toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.attr_float)
+toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+toolbox.register("mate", tools.cxSimulatedBinaryBounded, low=BOUND_LOW, up=BOUND_UP, eta=30.0)
+toolbox.register("mutate", tools.mutPolynomialBounded, low=BOUND_LOW, up=BOUND_UP, eta=20.0, indpb=1.0/NDIM)
+toolbox.register("select", tools.selNSGA2)
+ 
+#toolbox.register("select", tools.selNSGA3, ref_points=ref_points)
+##
+
+
+
+from pymoo.model.population import Population
+solutions1 = []
+def main(seed=None):
+    global initial_pop1
+    global hyper1
+    hyper1 = []
+    random.seed(seed)
+    # Initialize statistics object
+    pop1 = toolbox.population(n=MU)
+    initial_pop1 = pop1
+    
+    #print ("my dipo")
+    #print (pop1)
+    
+
+    #hv = hypervolume(pop1)
+    #rp = hv.refpoint(offset = 2.0)
+    #hcm = hv.compute(rp)
+    invalid_ind = [ind for ind in pop1 if not ind.fitness.valid]
+    ObjV = MOCP(invalid_ind, NDIM)
+    for ind, i in zip(invalid_ind, range(MU)):
+        ind.fitness.values = ObjV[i, :]
+    #print(ObjV)
+    #print(ftDf)
+    
+    fit = [ind.fitness.values  for ind in pop1]
+    ftDf1 = pd.DataFrame(fit)
+    hyp = pg.hypervolume(ftDf1[[0, 1, 2, 3, 4]].values)
+    hypvol = hyp.compute([20, 20, 20, 20, 20]) / np.prod([20, 20, 20, 20, 20])
+    hyper1.append(hypvol)
+    # Begin the generational process
+
+    global offspring
+    
+    exec_time2 = []
+    avg_cpu_utilNSGA2 = []
+    for gen in range(1, NGEN):
+        start = time.perf_counter()
+        #core_amount = psutil.cpu_count()
+        #core_load = [x / core_amount * 100 for x in psutil.getloadavg()]
+        #avg_cpu_util2 = psutil.cpu_percent()
+        
+   
+        
+        #print("generation is ", gen)
+        offspring1 = algorithms.varAnd(pop1, toolbox, CXPB, MUTPB)
+        #print("OFFSPRING IS ", offspring)
+        offspring1 = fixer(offspring1)
+        offspring1 = fixer(offspring1)
+        #print("modified offspring", offspring)
+        #return offspring
+        # Evaluate the individuals with an invalid fitness
+        invalid_ind = [ind for ind in offspring1 if not ind.fitness.valid]
+        #print("Invalid individuals ", invalid_ind)
+        #function to be applied on offspring
+        #  -float to integers
+        #  -remove duplicates
+        #  -
+
+        ObjV = MOCP([ind for ind in offspring1 if not ind.fitness.valid], NDIM)
+        for ind, i in zip(invalid_ind, range(MU)):
+            ind.fitness.values = ObjV[i, :]
+        # Select the next generation population from parents and offspring
+        pop1 = toolbox.select(pop1 + offspring1, MU)
+        fit = [ind.fitness.values  for ind in pop1]
+        ftDf1 = pd.DataFrame(fit)
+        hyp = pg.hypervolume(ftDf1[[0, 1, 2, 3, 4]].values)
+        hypvol = hyp.compute([20, 20, 20, 19, 20]) / np.prod([20, 20, 20, 19, 20])
+        hyper1.append(hypvol)
+        
+        core_amount = psutil.cpu_count()
+        core_load = [x / core_amount * 100 for x in psutil.getloadavg()]
+        avg_cpu_util2 = psutil.cpu_percent()
+        avg_cpu_utilNSGA2.append(avg_cpu_util2)
+        end = time.perf_counter()
+        end_time = end - start
+    
+        exec_time2.append(end_time)
+        
+        
+        
+    
+    
+    #'''cpu utilization'''
+    #core_amount = psutil.cpu_count()
+    #core_load = [x / core_amount * 100 for x in psutil.getloadavg()]
+    #avg_cpu_util2 = psutil.cpu_percent()
+    
+    
+    
+    return pop1, core_load, avg_cpu_utilNSGA2, exec_time2
+ 
+if __name__ == "__main__":
+    '''time measurement'''
+    tracemalloc.start()
+    start = time.perf_counter()
+    pop1, core_load, avg_cpu_utilNSGA2, exec_time2 = main()
+    current, peak = tracemalloc.get_traced_memory()
+    end = time.perf_counter()
+    tracemalloc.stop()
+    exec_timeNSGA2 = end - start
+    
+    #print("time taken is {}".format(exec_time2))
+    #print("time taken is {}".format(exec_timeNSGA2))
+    #print(f"current memory utilization is {current/10**6}MB")
+    #print(f"peak memory utilisation is {peak/10**6}MB")
+    #print("cpu load/core is {}".format(core_load))
+    #print("avg_cpu utilisation2 is {}".format(avg_cpu_utilNSGA2))
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection="3d")
+    p1 = np.array([ind.fitness.values for ind in pop1])
+    ax.scatter(p1[:, 0], p1[:, 1], p1[:, 2], marker="o", s=10)
+    ax.view_init(elev=30, azim=45)
+    plt.grid(True)
+    plt.show()
+	
+REVERSE ENGINEERING FOR CONTROLLER LOCATION CHECKS
+
+# import pandas as pd
+import numpy as np
+import pandas as pd
+import math
+dataset = pd.read_csv('DistanceMatrixnan2.csv',index_col=0)
+
+#dataset.head(5)
+dataset
+
+pop1
+
+city = dataset.columns.to_list()
+city
+
+#Checking the controller location mapping fron the NSGA3
+#20 4 9 1 15
+ind = [[19, 9, 14, 0, 18], [0, 8, 1, 6, 2], [0, 13, 1, 3, 4], [1, 8, 13, 6, 3], [1, 5, 2, 0, 4], [20, 6, 0, 2, 3],
+       [20, 8, 14, 0, 5], [20, 9, 15, 0, 2], [0, 8, 1, 3, 5], [20, 9, 15, 4, 1]]
+z = pd.DataFrame(ind)
+z
+
+
+#This is the first objective finding the maximum of the minimum value of d(v,p)
+v = len(dataset)
+minL = []
+#sumL = []
+for index, row in z.iterrows():
+    li = []
+     #print(index, row)
+    r = row.tolist()
+    for i in r:
+      li.append(city[i])
+    #print("A new row ") 
+    #print(li)
+    new_dataset2 = dataset[li]  
+    new_dataset2 = new_dataset2.dropna() 
+    new_dataset2 = new_dataset2.reset_index(drop=True)
+    new_dataset2 =  pd.DataFrame(new_dataset2)
+    mins =  new_dataset2.min(axis=1)
+    #sum = 1/(abs(len(new_dataset2))) * np.sum(new_dataset2)
+    print(new_dataset2)
+    minL.append(mins)
+    #sumL.append(I_avg_N2C)
+minDataset = pd.DataFrame(minL)
+print(minDataset)
+maxNu = minDataset.max(axis=1) #generates the maximum of minimum
+#print("Maximum of Minimum is ")
+#print(maxNu)
+maxNu = pd.DataFrame(maxNu)
+maxNu
+#print("\n\n")
+#print("Sum")
+#sumDataset = pd.DataFrame(sumL) #generates the sum
+#print(sumDataset)
+
+#This is the second objective finding the average minimum value between d(v,p)
+v = len(dataset)
+minL = []
+sumL = []
+for index, row in z.iterrows():
+    li = []
+     #print(index, row)
+    r = row.tolist()
+    for i in r:
+      li.append(city[i])
+    #print("A new row ") 
+    #print(li)
+    new_dataset2 = dataset[li]  
+    new_dataset2 = new_dataset2.dropna() 
+    new_dataset2 = new_dataset2.reset_index(drop=True)
+    new_dataset2 =  pd.DataFrame(new_dataset2)
+    mins =  new_dataset2.min(axis=1)
+    new_dataset2 =  new_dataset2.min(axis=1)
+    l_avg_N2C = 1/(abs(len(new_dataset2))) * np.sum(new_dataset2)
+    print(new_dataset2)
+    minL.append(mins)
+    sumL.append( l_avg_N2C)
+minDataset = pd.DataFrame(minL)
+#maxNu = minDataset.max(axis=1) #generates the maximum of minimum
+#print("Maximum of Minimum is ")
+#print(maxNu)
+#print("\n\n")
+#print("Sum")
+l_avg_N2CT = pd.DataFrame(sumL) #generates the sum
+l_avg_N2CT
+#print(len(new_dataset2))
+#y = np.sum(new_dataset2)
+#print(y)
+
+
+maxC2C = []
+avgC2C = []
+for index, row in z.iterrows():
+    li = []
+    r = row.tolist()
+    cont_distance =[]
+    cont_distanc =[]
+    ctyu = []
+    C2C = []
+   
+    print("\n")
+    print(r)
+    for i in range(len(r)):
+      ctyu.append(city[r[i]])
+      print('selected', city[r[i]]  )
+      a = i
+      cont_distance = max(dataset[ctyu].iloc[0])
+      for j in range(a,len(r),1):
+        cty = city[r[i]]
+        
+        #print('selected', cty  )
+        cty2 = city[j]
+        #print(cty)
+        #print(r[j])
+        f = dataset[cty][r[j]]
+        #print(f)
+        cont_distanc.append(f);
+      
+    maxC2C.append(cont_distance)
+
+
+    for i in r:
+      li.append(city[i])
+    #print("A new row ") 
+    #print(li)
+    
+maxC2CDataset = pd.DataFrame(maxC2C)
+
+
+
+
+list = z
+y = list.iloc[0]
+yl = y.tolist()
+ctyu = []
+for s in yl:
+  ctyu.append(city[s])
+ydt = dataset[ctyu]
+
+lo = ydt.iloc[0]
+#print(lo)
+sm = []
+for i in range(len(lo)):
+    #print(lo[i])
+    si = 0
+    a = i
+    #sm.append(lo[i])
+    for j in range(i +1,len(lo), 1):
+      print(lo[j])
+ 
+      sm.append(lo[j])
+      
+    
+        
+
+ctyu = []
+for s in yl:
+  ctyu.append(city[s])
+print(ctyu)
+#cont_distance =[yl]
+ydt = dataset[ctyu]
+mx = max(ydt.iloc[0])
+
+
+maxC2CDataset
+
+
+C2C = []
+for index, row in z.iterrows():
+    li = []
+    r = row.tolist()
+    ctyu = []
+   
+    sm = []
+    print("\n")
+    print(r)
+    
+    for i in range(len(r)):
+        ctyu.append(city[r[i]])
+    
+      
+    a = i
+    dty = dataset[ctyu].iloc[0]
+  
+
+     
+    print('ctyu',ctyu)
+    ydt = dataset[ctyu]
+    lo = ydt.iloc[0]
+    print(lo)
+    for i in range(len(lo)):
+      #print(lo[i])
+      si = 0
+      a = i
+      #sm.append(lo[i])
+      for j in range(i +1,len(lo), 1):
+        si = lo[i] + lo[j]
+        sm.append(si)
+    t = 0
+    for u in sm:
+      t = t + u
+    print(t)
+    C2 = (t)/(math.comb(len(r), 2))
+    print(C2)
+
+    
+    C2C.append(C2)
+    
+
+    
+maxC2CDataset = pd.DataFrame(maxC2C)
+C2CDataset = pd.DataFrame(C2C)
+C2CDataset
+
+end_values = []
+for index, row in z.iterrows():
+    li = []
+    r = row.tolist()
+    ctyu = []
+    
+    for i in range(len(r)):
+        ctyu.append(city[r[i]])
+  
+        a = i
+        dty = dataset[ctyu].iloc[0]
+     
+     
+    print('ctyu',ctyu)
+    ydt = dataset[ctyu]
+    print("dataframe is ydt")
+    print(ydt)
+    new_dataset = ydt.dropna() 
+   
+    row_list = []
+    new_list =[]
+    ij = []
+    values = pd.DataFrame()
+    for index, row in ydt.iterrows():
+     
+        for k in range(len(row)):
+          #print( 'k is ', k)
+          row_list.append(row.loc[ctyu[k]])
+
+        for i in row_list:
+            if i != min(row_list):
+                new_list.append(0)
+            else:
+                new_list.append(1)
+
+        to_load = pd.Series(new_list, index=ctyu)
+        values = values.append(to_load, ignore_index=True)
+        row_list =[]
+        new_list =[]
+
+    result = values.apply(pd.value_counts).drop([0])
+    end_val = (result.max(axis = 1) - result.min(axis = 1))/result.max(axis = 1)
+    end_values.append(end_val)
+    print('end value is ',end_val)
+    print("end ydt")
+    lo = ydt.iloc[0]
+    
+EndValDataset = pd.DataFrame(end_values)
+
+
+EndValDataset
+#norm_EndValDataset = EndValDataset / result.max(axis = 1)
+#norm_EndValDataset
+#norm_EndValDataset = EndValDataset / (EndValDataset.max())
+#norm_EndValDataset
+
+BEGINNING OF MOPSO FOR SDWAN CONTROLLER PLACEMENT
+
+import numpy as np
+from numpy import matlib
+import matplotlib.pyplot as plt
+import random as random
+import math
+
+
+def deleteOneRepositoryMember(rep , gamma):
+    gridindices = [item.gridIndex for item in rep]
+    OCells = np.unique(gridindices) # ocupied cells
+    N = np.zeros(len(OCells))
+    for k in range(len(OCells)):
+        N[k] = gridindices.count(OCells[k])
+    # selection probablity
+    p = [math.exp(gamma*item) for item in N]
+    p = np.array(p)/sum(p)
+
+    # select cell index
+    sci = roulettewheelSelection(p)
+    SelectedCell = OCells[sci]
+
+    #selected Cell members
+    selectedCellmembers = [item for item in gridindices if item == SelectedCell]
+
+    selectedmemberindex = np.random.randint(0,len(selectedCellmembers))
+    #selectedmember = selectedCellmembers[selectedmemberindex]
+
+    # delete memeber
+    #rep[selectedmemberindex] = []
+    rep = np.delete(rep, selectedmemberindex)
+
+    return rep.tolist()
+	
+def SelectLeader(rep , beta):
+    gridindices = [item.gridIndex for item in rep]
+    OCells = np.unique(gridindices) # ocupied cells
+    N = np.zeros(len(OCells))
+    for k in range(len(OCells)):
+        N[k] = gridindices.count(OCells[k])
+    # selection probablity
+    p = [math.exp(-beta*item) for item in N]
+    p = np.array(p)/sum(p)
+
+    # select cell index
+    sci = roulettewheelSelection(p)
+    SelectedCell = OCells[sci]
+
+    #selected Cell members
+    selectedCellmembers = [item for item in gridindices if item == SelectedCell]
+
+    selectedmemberindex = np.random.randint(0,len(selectedCellmembers))
+    # selectedmember = selectedCellmembers[selectedmemberindex]
+
+    return rep[selectedmemberindex]
+	
+	
+def roulettewheelSelection(p):
+    r = random.random()
+    cumsum = np.cumsum(p)
+    y = (cumsum<r)
+    x= [i for i in y if i==True]
+    return len(x)
+	
+def FindGridIndex(particle, grid):
+    nObj = len(particle.cost)
+    NGrid = len(grid[0].LowerBounds)
+    
+    particle.gridSubIndex = np.zeros((1,nObj))[0]
+    for j in range(nObj):  
+        index_in_Dim = len( [item for item in grid[j].UpperBounds if particle.cost[j]>item]) 
+        particle.gridSubIndex[j] = index_in_Dim
+
+    particle.gridIndex = particle.gridSubIndex[0]
+
+    for j in range(1,nObj):
+        particle.gridIndex = particle.gridIndex 
+        particle.gridIndex = NGrid*particle.gridIndex
+        particle.gridIndex = particle.gridIndex + particle.gridSubIndex[j]
+
+    return particle
+	
+def CreateGrid(pop,nGrid,alpha,nobj):
+    costs = [item.cost for item in pop]
+    Cmin = np.min(costs,axis=0)
+    Cmax = np.max(costs,axis=0)
+    deltaC = Cmax - Cmin
+    Cmin =  Cmin - alpha*deltaC
+    Cmax = Cmax + alpha*deltaC
+   
+    grid = [GridDim() for p in range(nobj)]
+    for i in range(nobj):
+       dimValues = np.linspace(Cmin[i],Cmax[i],nGrid+1).tolist()
+       grid[i].LowerBounds = [-float('inf')] + dimValues
+       grid[i].UpperBounds = dimValues  + [float('inf')]
+    return grid
+	
+def Dominates(x,y):
+    x=np.array(x)
+    y=np.array(y)
+    x_dominate_y = all(x<=y) and any(x<y)
+    return x_dominate_y
+
+def DetermineDomination(pop):
+    pop_len= len(pop)
+    for i in range(pop_len):
+         pop[i].IsDominated = False 
+
+    for i in range(pop_len-1):
+        for j in range(i+1,pop_len):
+            if Dominates(pop[i].cost,pop[j].cost):
+                pop[j].IsDominated = True
+            if Dominates(pop[j].cost,pop[i].cost):
+                pop[i].IsDominated = True
+
+    return pop
+	
+def dupfix(VA):
+    VA = [int(x) for x in VA]
+    for i in range(len(VA)):
+      if VA[i] < 0:
+        VA[i] = 0
+      elif VA[i] > 20:
+        VA[i] = 20
+      
+      
+    k = []
+    for i in range(len(VA)):
+        VA[i] = int(round(VA[i]))
+        if VA[i] not in k:
+            k.append(VA[i])
+        else:
+            f = 0
+            for q in range(VA[i], 20):
+                if q not in k:
+                    VA[i] = q
+                    k.append(q)
+                    f = 1
+                    break
+            if f == 0:
+                for q in reversed(range(0, VA[i])):
+                    if q not in k:
+                        VA[i] = q
+                        k.append(q)
+                        f = 1
+                        break
+    return VA
+	
+import time
+import platypus as plat
+import pygmo as pg
+from pygmo import hypervolume
+from platypus import Hypervolume, calculate, display
+import psutil, tracemalloc
+
+import pandas as pd
+import numpy as np
+def uniform(low, up, size=None):
+  return random.sample(range(varMin,varMax),nVar)
+import autograd.numpy as anp 
+def MOCPParticle(nVar): #passing VARS=init pop and NDIM=number of decision variables into the funct.
+        #print(type(VARS))
+        #if isinstance(nVar,np.ndarray):
+           # nVar = nVar.tolist()
+        #if type(nVar) is numpy.ndarray:
+        if not isinstance(nVar, list):
+            nVar = nVar.tolist()
+            nVar = [int(x) for x in nVar]
+       
+       
+        #nVar = list(nVar)
+        #if isinstance(nVar,np.ndarray):
+         #   nVar = type(nVar)
+          #  return 0
+                
+        #print("Details of X below")
+
+        #VARS.apply(pd.to_numeric)
+        #VARS.astype('int32').dtypes
+        #df = VARS.convert_objects(convert_numeric=True)
+        dataset = pd.read_csv('DistanceMatrixnan2.csv',index_col=0)
+        global x
+        #x = pd.DataFrame(nVar)
+        
+        li = []
+        cont_distance =[]
+        cont_distanc =[]
+        ctyu = []
+        sam = 0
+        a = 0
+        sm = []
+        city = dataset.columns.to_list()
+        #print("city is \n", city)
+        v = len(dataset)
+        #print("length of dataset is ", v)
+        minL = []
+        sumL = []
+        maxC2C = []
+        avgC2C = []
+        C2C = []
+        end_values = []
+        
+        r = nVar
+        print (r)
+        for i in range(len(r)):
+            ctyu.append(city[r[i]])
+          #print('city being appended is ',city[r[i]])
+
+        
+          #print('selected', city[r[i]]  )
+        a = i
+        dty = dataset[ctyu].iloc[0]
+
+          #print('tobi is ',dty)
+        cont_distance = max(dty)
+          
+        ydt = dataset[ctyu]
+        lo = ydt.iloc[0]
+        #print(lo)
+        for i in range(len(lo)):
+            si = 0
+            a = i
+              
+            for j in range(i +1,len(lo), 1):
+                si = lo[i] + lo[j]
+                sm.append(si)
+            t = 0
+            for u in sm:
+              t = t + u
+            #print(t)
+            C2 = (t)/(math.comb(len(r), 2))
+            print(C2)
+        new_dataset = ydt.dropna() 
+        
+        row_list = []
+        new_list =[]
+        ij = []
+        values = pd.DataFrame()
+        for index, row in ydt.iterrows():
+            #print('index is length ',len(row))
+            for k in range(len(row)):
+              
+              if isinstance(row.loc[ctyu[k]], pd.core.series.Series):
+                
+                row_list.append(row.loc[ctyu[k]].iloc[0])
+              else:
+                row_list.append(row.loc[ctyu[k]])
+            #print("row_list\n", row_list)
+            for i in row_list:
+              if i != min(row_list):
+                    #print("I is not equal to min of rowlist")
+                    new_list.append(0)
+              else:
+                    new_list.append(1)
+            #print("New list is \n",new_list)
+            to_load = pd.Series(new_list, index=ctyu)
+            #print("loaded list is \n", to_load)
+            values = values.append(to_load, ignore_index=True)
+            #print("values \n", values)
+            row_list =[]
+            new_list =[]
+
+            result = values.apply(pd.value_counts).drop([0])
+            #print("result\n", result,"\nMAX", result.max(axis = 1), "\nMIN", result.min(axis = 1))
+            end_val = (result.max(axis = 1) - result.min(axis = 1))/result.max(axis = 1)
+            
+            #print("end_val\n",end_val)
+            end_values.append(end_val)
+
+            
+            
+            
+            C2C.append(C2)
+            maxC2C.append(cont_distance)
+            avgC2C.append(C2)
+
+            for i in r:
+              li.append(city[i])
+            #print("A new row ") 
+            #print(li)
+            new_dataset2 = dataset[li]  
+            new_dataset2 = new_dataset2.dropna() 
+            new_dataset2 = new_dataset2.reset_index(drop=True)
+            new_dataset2 =  pd.DataFrame(new_dataset2)
+            mins =  new_dataset2.min(axis=1)
+            sum1 = 1/(abs(len(new_dataset2))) * np.sum(mins)
+            #print(new_dataset2)
+            minL.append(mins)
+            sumL.append(sum1)
+        minDataset = pd.DataFrame(minL)
+        maxC2CDataset = pd.DataFrame(maxC2C)
+        C2CDataset = pd.DataFrame(C2C)
+        EndValDataset = pd.DataFrame(end_values)
+        avgC2CDataset = pd.DataFrame(avgC2C)
+        
+        #norm_EndValDataset = EndValDataset / (EndValDataset.max())
+        #print('EndValDataset.max() is \n', EndValDataset.max())
+        #print('EndValDataset is \n',norm_EndValDataset)
+        #return norm_EndValDataset
+        #endvalues_norm = norm_EndValDataset[1.0].to_list()
+        
+        maxNu = minDataset.max(axis=1) #generates the maximum of minimum
+        maxIjogbon = maxNu.values.tolist()
+        end_valmod = end_val.values.tolist()
+        #print("Maximum of Minimum is ")
+        #print(maxNu)
+        #print("\n\n")
+        #print("Sum")
+        maxNuDataset = pd.DataFrame(maxNu)
+        sumDataset = pd.DataFrame(sumL) #generates the sum
+        
+        print("maxIjogbon", maxIjogbon[0])
+        print("cont_distance",  cont_distance)
+        print("C2", C2 )
+        print("end_valmod", end_valmod[0])
+        print("sum", sum1)
+        
+        return numpy.array([maxIjogbon[0], cont_distance, C2, end_valmod[0],  sum1])
+		
+#CUSTOM INITIAL PARAMETER 
+nVar = 5 # number of decision vars
+varMin = 0
+varMax = 20
+NGEN = 501
+nPop = 495
+nRep = 600  # size of repository
+w = 0.5 # inertia wieght
+c1 = 2 # personal learning coefficient
+c2 = 2 # global learning coefficient
+wdamping = 0.99
+
+D_lower = varMin
+D_upper = varMax
+NDIM = nVar
+def uniform(low, up, size=None):
+    return random.sample(range(D_lower,D_upper), NDIM)
+uniform(D_lower,D_upper, NDIM)
+
+
+import numpy as np
+import numpy
+beta = 1 # leader selection pressure
+gamma = 1 # deletion selection pressure
+NoGrid = 10
+alpha=0.1 # nerkhe tavarrom grid
+
+# initialization
+class Particle:
+    position = []
+    cost = []
+    velocity = []
+    best_position = []
+    best_cost = []
+    IsDominated = []
+    gridIndex = []
+    gridSubIndex = []
+
+
+# for each objective a grid items is division of values of objective cost
+class GridDim: 
+    LowerBounds = []
+    UpperBounds = []
+
+global Particles
+hyper2 = []
+hyper2repo = []
+#Particles = np.matlib.repmat(Particle,nPop,1)
+Particles = [Particle() for p in range(nPop)]
+Temp_Particles = []
+#print (Particles)
+
+a=1
+for i in range(nPop):
+    Temp_Position = np.array(uniform(varMin,varMax,nVar))
+    Particles[i].position = Temp_Position
+    Temp_Particles.append(Temp_Position)
+   
+    #Particles[i].position = np.array(uniform(varMin,varMax,nVar))
+    Particles[i].velocity = np.zeros(nVar)
+    print("\n Cycle {} \n".format(a))
+    Particles[i].cost = np.array(MOCPParticle(Particles[i].position))
+    # update best personal Best
+    Particles[i].best_position = Particles[i].position
+    Particles[i].best_cost = Particles[i].cost
+    Particles[i].IsDominated = False 
+    #fit = [item.cost for item in Particles]
+    
+    a+=1
+    #fit = [item.cost for item in Particles]
+    #ftDf = pd.DataFrame(fit)
+    #hyp = pg.hypervolume(ftDf[[0, 1, 2, 3, 4]].values)
+    #hypvol = hyp.compute([20, 20, 20, 20, 20]) / np.prod([20, 20, 20, 20, 20])
+    #hyper.append(hypvol)
+#print (Particles)
+#Particles.cost = MOCP(Temp_Particles, NDIM)   
+    
+Particles = DetermineDomination(Particles)
+
+Repos = [item for item in Particles if item.IsDominated == False ]
+#print("Repos\n\n")
+#print (Repos[0].cost)
+#print (Repos[1].cost)
+nObj =len( Repos[0].cost)
+grid = CreateGrid(Repos,NoGrid,alpha=0.1,nobj=nObj)
+
+for r in range(len(Repos)):
+    Repos[r] = FindGridIndex(Repos[0],grid)
+    #print("r is", r)
+    #print ("repos r is", r)
+
+#MOPSO main loop
+exec_timemopso = []
+avg_cpu_utilNSGA3 = []
+for it in range(1, NGEN):
+    start1 = time.perf_counter()
+    for i in range(nPop):
+        leader = SelectLeader(Repos,beta)
+        print ("leader", leader)
+        # update velocity
+#         print ("Particles[i].best_position", Particles[i].best_position, "type", 
+   #                type(Particles[i].best_position))
+        #leader.position = np.array(leader)
+        leaderpos_1 = leader.position
+        
+        #print ("Repos", Repos, "type", type(Repos))
+        #print ("beta", beta, "type", type(beta))
+        #print ("Particles[i].velocity", Particles[i].velocity, "type", type(Particles[i].velocity))
+        
+        # Particles[i].position = np.array(Particle[i].position)
+        
+        #print ("Particles[i].position", Particles[i].position, "type", 
+            #      type(Particles[i].position))
+        #print ("leader.position", leader.position, "type", 
+             #     type(leader.position))
+        
+        positions = zip(Particles[i].best_position, Particles[i].position)
+        position_diff = [x - y for (x, y) in positions]
+        
+        leaders = zip(leaderpos_1, Particles[i].position)
+        leader_pos = [x - y for (x, y) in leaders]
+        
+        Particles[i].velocity = w*Particles[i].velocity  \
+            + c1*np.random.rand(1,nVar)[0]*(position_diff) \
+            + c2*np.random.rand(1,nVar)[0]*(leader_pos)
+        
+       
+        # update position
+        Particles[i].position = Particles[i].position + Particles[i].velocity
+        
+
+        # evaluation
+        tp = dupfix(Particles[i].position)
+        Particles[i].cost = MOCPParticle(tp)
+        
+        
+
+        if Dominates(Particles[i].cost,Particles[i].best_cost):
+            Particles[i].best_position = tp
+            Particles[i].best_cost = Particles[i].cost
+        else:
+            if np.random.rand() > 0.5:
+                Particles[i].best_position = tp
+                Particles[i].best_cost = Particles[i].cost
+      
+    end1 = time.perf_counter()
+    end_time_mopso = end1 - start1
+        
+    exec_timemopso.append(end_time_mopso)
+    
+    Repos = Repos + Particles
+    Repos = DetermineDomination(Repos)
+    Repos = [item for item in Repos if item.IsDominated == False ]
+    fit = [item.cost for item in Particles]
+    fitrepo = [item.cost for item in Repos]
+    ftDf = pd.DataFrame(fit)
+    ftDfrepo = pd.DataFrame(fit)
+    hyp = pg.hypervolume(ftDf[[0, 1, 2, 3, 4]].values)
+    hyprepo = pg.hypervolume(ftDfrepo[[0, 1, 2, 3, 4]].values)
+    hypvol = hyp.compute([20, 20, 20, 20, 20]) / np.prod([20, 20, 20, 20, 20])
+    hypvolrepo = hyp.compute([20, 20, 20, 20, 20]) / np.prod([20, 20, 20, 20, 20])
+    hyper2.append(hypvol)
+    hyper2repo.append(hypvolrepo)
+    
+    core_amount = psutil.cpu_count()
+    core_load = [x / core_amount * 100 for x in psutil.getloadavg()]
+    avg_cpu_util = psutil.cpu_percent()
+    avg_cpu_utilNSGA3.append(avg_cpu_util)
+        
+        
+    
+       
+    #return Repos, core_load, avg_cpu_utilNSGA3, exec_time
+
+
+    '''time measurement'''
+    tracemalloc.start()
+    start1 = time.perf_counter()
+    Repos, core_load, avg_cpu_utilNSGA3, exec_timemopso 
+    current, peak = tracemalloc.get_traced_memory()
+    #end = time.perf_counter()
+    #tracemalloc.stop()
+    #exec_timeNSGA3 = end - start
+    
+    #print("time taken is {}".format(exec_timemopso) )
+    #print("time taken is {}".format(exec_timemopso) )
+    print(f"current memory utilization is {current/10**6}MB")
+    print(f"peak memory utilisation is {peak/10**6}MB")
+    print("cpu load/core is {}".format(core_load))
+    #print("avg_cpu utilisation is {}".format(avg_cpu_utilmopso))
+    
+ 
+    grid = CreateGrid(Repos,NoGrid,alpha=0.1,nobj=nObj)
+    for r in range(len(Repos)):
+        Repos[r] = FindGridIndex(Repos[r],grid)
+
+    # check if repository is full
+    if len(Repos) > nRep :
+        extra = len(Repos) - nRep
+        for e in range(extra):
+            Repos = deleteOneRepositoryMember(Repos,gamma)
+
+        ########## show figure ########## 
+    #plt.clf()
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection="3d")
+    particlesCost = np.reshape( [item.cost for item in Particles ],newshape=(nPop,5))
+    repositoryCost = [item.cost for item in Repos]
+    repositoryCost = np.reshape( repositoryCost, newshape=(len(repositoryCost),5))
+    ax.scatter(particlesCost[:,0], particlesCost[:,1],  particlesCost[:,2],'o')
+    ax.scatter(repositoryCost[:,0], repositoryCost[:,1], repositoryCost[:,2],'r*')
+    ax.view_init(elev=30, azim=45)
+    plt.grid(True)
+    plt.show()
+    #plt.draw()
+    #plt.pause(0.00000000001)
+
+    w=w*wdamping
+    
+# print(repositoryCost)
+# print("ok")
+# print(particlesCost)
+    ########## show figure ##########
+plt.show()
+#print(exec_timemopso)
+
+dir(Particles[0])
+
+hyp = pg.hypervolume(ftDf[[0, 1, 2, 3, 4]].values)
+hypvol = hyp.compute([20, 20, 20, 20, 20]) / np.prod([20, 20, 20, 20, 20])
+hyp.compute([20, 20, 20, 20, 20]) / np.prod([20, 20, 20, 20, 20])
+
+Temp_Particles
+
+fit = [item.cost for item in Particles ]
+ftDfMOPSO = pd.DataFrame(fit)
+ftDfMOPSO
+
+fitrepo = [item.cost for item in Repos]
+ftDfMOPSOrepo = pd.DataFrame(fitrepo)
+ftDfMOPSOrepo
+
+ftDfMOPSO.columns=["sw_to_conlat", "cont_contlat", "avgcon_con", "load_imb", "avgsw_to_conlat"]
+ftDfMOPSO.to_csv("objvalues.csv", index=False)
+
+cols = ftDfMOPSO.columns.tolist()
+for col in cols:
+  for co in cols:
+    if (col != co):
+      ftDfMOPSO.plot.scatter(x=col,    y=co, c='DarkBlue')
+
+!pip install pandas-bokeh
+import pandas_bokeh
+pandas_bokeh.output_notebook()
+
+
+cols = ftDfMOPSO.columns.tolist()
+for col in cols:
+  for co in cols:
+    if (col != co):
+      ftDfMOPSO.plot_bokeh.scatter(x=col,    y=co, c='DarkBlue')
+	  
+fit = [item.cost for item in Particles ]
+ftDfMOPSO
+
+particlesCost
+
+pDf = pd.DataFrame(particlesCost)
+pDf.to_csv("newmopso500_final.csv", index=False)
+
+pDf.head()
+
+pip install -U hiplot
+
+import hiplot as hip
+data = hip.Experiment.from_csv("newmopso500_final.csv")
+data.display()
+
+fit = [item.cost for item in Particles]
+ftDf = pd.DataFrame(fit)
+ftDf.sample(2)
+
+ftDfMOPSO[[0, 1, 2, 3, 4]]
+
+inds = [item.best_position for item in Particles]
+indsDf = pd.DataFrame(inds)
+indsDf.sample(2)
+
+indsDf
+
+indTop = indsDf[:21]
+print(indTop.shape)
+indTop.head()
+
+dataset = pd.read_csv('DistanceMatrixnan2.csv',index_col=0)
+cities = dataset.columns.to_list()
+cities
+
+import time
+seconds = time.time()
+indTop.to_csv("Top21MOPIndividuals_{}.csv".format(time.time()), index=False)
+
+ctMap = pd.DataFrame()
+for index, row in indTop.iterrows():
+  s = cities[index]
+  for id,val in enumerate(row):
+    j = cities[val]
+    ctMap.loc[index, id] = "{},{}".format(s,j)
+ctMap
+
+ctMap.to_csv("CityMappings_{}.csv".format(time.time()), index=False)
+
+xmap = pd.DataFrame()
+for index, row in ftDfMOPSO.iterrows():
+  print("row being reviewed is ",row)
+  for id,val in enumerate(row):
+    xmap.loc[index,id] = "{}_{}".format(ftDfMOPSO.loc[index,id], indsDf.loc[index,id])
+
+xmap.sample(5)
+
+xmap
+
+hyp = pg.hypervolume(ftDf[[0, 1, 2, 3, 4]].values)
+hypvol = hyp.compute([20, 20, 20, 20, 20]) / np.prod([20, 20, 20, 20, 20])
+hyp.compute([20, 20, 20, 20, 20]) / np.prod([20, 20, 20, 20, 20])
+
+%matplotlib inline
+%config InlineBackend.figure_format='retina'
+import matplotlib.pyplot as plt
+import seaborn as sns
+from pylab import rcParams
+#import tensorflow as tf
+import numpy as np
+sns.set(style='whitegrid', palette='muted', font_scale=1.5)
+rcParams['figure.figsize'] = 16, 10
+RANDOM_SEED = 43
+np.random.seed(RANDOM_SEED)
+#tf.random.set_seed(RANDOM_SEED)
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+%matplotlib inline
+import matplotlib.ticker as mticker
+#pd.set_option('display.float_format', lambda x: '%.6f' % x)
+
+fig, ax = plt.subplots(figsize=(20,10))
+ax=plt.gca()
+
+#plt.plot(hyper1, marker='o', linestyle='-', label = "NSGA II Hypervolumes")
+#plt.plot(hyper1, marker='o', linestyle='-', label = "NSGA II Hypervolumes", color='red')
+plt.plot(hyper2, marker='s', linestyle='--', label = "MOPSO Hypervolumes")
+ax.yaxis.set_major_formatter(mticker.ScalarFormatter())
+ax.yaxis.get_major_formatter().set_scientific(False)
+ax.yaxis.get_major_formatter().set_useOffset(False)
+
+plt.ylabel('Hypervolumes')
+plt.xlabel('Number of Generations')
+plt.legend()
+
+plt.show().
